@@ -2,6 +2,7 @@ use clap::Parser;
 use std::process;
 
 mod searcher;
+mod export;
 
 #[derive(Parser)]
 struct Args {
@@ -14,7 +15,7 @@ struct Args {
     start: u64,
 
     /// End of key range
-    #[arg(short, long)]
+    #[arg(short, long, default_value =  "18446744073709551615")]
     end: u64,
 
     /// Number of threads
