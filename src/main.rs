@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::process;
 
 mod searcher;
 
@@ -23,5 +24,13 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    searcher::search_vanity(&args.pattern, args.start, args.end, args.threads);
+    match searcher::search_vanity(&args.pattern, args.start, args.end, args.threads) {
+        Some((key, addr)) => {
+            println!("Found: {} {}", key, addr);
+            process::exit(0);
+        }
+        None => {
+            println!("No match found in the range.");
+        }
+    }
 }
