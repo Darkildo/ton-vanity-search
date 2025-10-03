@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run TON Vanity Search",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=ton-vanity-search",
+                    "--package=ton-vanity-search"
+                ],
+                "filter": {
+                    "name": "ton-vanity-search",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--pattern",
+                "EQtest",
+                "--start",
+                "0",
+                "--end",
+                "1000",
+                "--threads",
+                "4"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
