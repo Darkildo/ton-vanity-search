@@ -12,3 +12,21 @@ crc32fast = "1.3"
 rayon = "1.7"
 hex = "0.4"
 tonlib-core = "0.26.1"
+
+[build]
+# для локального CPU — даёт AVX2/POPCNT и др. если поддерживается
+rustflags = ["-C", "target-cpu=native"]
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "target-cpu=native"]
+
+
+[profile.release]
+opt-level = 3          # максимальная оптимизация по скорости
+lto = "thin"           # тонкое LTO даёт хороший выигрыш/время линковки
+codegen-units = 1      # больше времени на компиляцию, быстрее рантайм
+panic = "abort"        # без раскрутки стеков
+debug = false
+strip = "symbols"      # требует nightly Cargo или используйте cargo-strip
+incremental = false
+overflow-checks = false
