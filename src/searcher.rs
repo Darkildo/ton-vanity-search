@@ -1,13 +1,12 @@
-use std::sync::{mpsc, Arc};
+use ed25519_dalek::{SigningKey, VerifyingKey};
+use rayon::prelude::*;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Arc, mpsc};
 use std::thread;
 use std::time::{Duration, Instant};
-use rayon::prelude::*;
-use ed25519_dalek::{SigningKey, VerifyingKey};
 use tonlib_core::wallet::mnemonic::KeyPair;
 use tonlib_core::wallet::ton_wallet::TonWallet;
 use tonlib_core::wallet::wallet_version::WalletVersion;
-use tonlib_core::TonAddress;
 
 fn private_key_from_u64(n: u64) -> [u8; 32] {
     let mut key = [0u8; 32];
@@ -15,11 +14,7 @@ fn private_key_from_u64(n: u64) -> [u8; 32] {
     key
 }
 
-pub fn ton_v4r2_address_from_private(
-    secret_key_32: [u8; 32],
-    workchain: i32,
-    subwallet_id: i32,
-) -> TonAddress {
+pub fn ton_v4r2_address_from_private(secret_key_32: [u8; 32]) -> String {
     // Получаем публичный из приватного (ed25519).
     let sk = SigningKey::from_bytes(&secret_key_32);
     let vk: VerifyingKey = sk.verifying_key();
@@ -30,10 +25,9 @@ pub fn ton_v4r2_address_from_private(
         secret_key: secret_key_32.to_vec(),
     };
 
-    let wallet =
-        TonWallet::new_with_params(WalletVersion::V4R2, kp, workchain, subwallet_id).unwrap();
+    let wallet = TonWallet::new(WalletVersion::V4R2, kp).unwrap();
 
-    wallet.address
+    wallet.address.to_string()
 }
 
 pub fn search_vanity(
@@ -60,7 +54,7 @@ pub fn search_vanity(
     let start_time = Instant::now();
     thread::spawn(move || {
         loop {
-            thread::sleep(Duration::from_secs(60));
+            thread::sleep(Duration::from_secs(10));
             if found_clone.load(Ordering::SeqCst) {
                 break;
             }
@@ -81,14 +75,13 @@ pub fn search_vanity(
                 return;
             }
 
-            let key = private_key_from_u64(n);
-            let addr = ton_v4r2_address_from_private(key, 0, 698983191).to_string();
+            let addr = ton_v4r2_address_from_private(private_key_from_u64(n));
 
             counter.fetch_add(1, Ordering::Relaxed);
 
             if addr.starts_with(pattern) {
                 if !found.swap(true, Ordering::SeqCst) {
-                    let _ = tx.send((hex::encode(key), addr));
+                    let _ = tx.send((hex::encode(private_key_from_u64(n)), addr));
                 }
             }
         });
